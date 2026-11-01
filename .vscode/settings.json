@@ -1,0 +1,13 @@
+{
+  "editor.formatOnSave": false,
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.settings.url": ".vscode/java-compiler.prefs",
+  "java.configuration.maven.lifecycleMappings": ".vscode/lifecycle-mapping-metadata.xml",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-1.8",
+      "default": true,
+      "path": "/home/wldomiciano/.local/share/mise/installs/java/temurin-8.0.504+1"
+    }
+  ]
+}

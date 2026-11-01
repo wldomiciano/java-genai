@@ -1,0 +1,20 @@
+# Tipos/métodos deprecated
+org.eclipse.jdt.core.compiler.problem.deprecation=ignore
+# Variáveis locais não usadas
+org.eclipse.jdt.core.compiler.problem.unusedLocal=ignore
+# Métodos/campos privados não usados
+org.eclipse.jdt.core.compiler.problem.unusedPrivateMember=ignore
+# Imports não usados
+org.eclipse.jdt.core.compiler.problem.unusedImport=ignore
+# Heap pollution / operações unchecked
+org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=ignore
+# TODO/FIXME (lista vazia = não marca nada)
+org.eclipse.jdt.core.compiler.taskTags=
+# Resource leak: '...' is never closed
+org.eclipse.jdt.core.compiler.problem.unclosedCloseable=ignore
+# The type parameter X is hiding the type Y
+org.eclipse.jdt.core.compiler.problem.typeParameterHiding=ignore
+# Unnecessary @SuppressWarnings("X")
+org.eclipse.jdt.core.compiler.problem.unusedWarningToken=ignore
+# The enclosing type X is deprecated, perhaps this member should be marked as deprecated, too?
+org.eclipse.jdt.core.compiler.problem.memberOfDeprecatedTypeNotDeprecated=ignore
