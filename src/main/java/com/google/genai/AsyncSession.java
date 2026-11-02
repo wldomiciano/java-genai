@@ -28,6 +28,7 @@ import com.google.genai.types.LiveSendRealtimeInputParameters;
 import com.google.genai.types.LiveSendToolResponseParameters;
 import com.google.genai.types.LiveServerMessage;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -143,7 +144,13 @@ public final class AsyncSession {
    *     *registration* of the callback.
    */
   public CompletableFuture<Void> receive(Consumer<LiveServerMessage> onMessage) {
+    return receive(onMessage, null, null);
+  }
+
+  public CompletableFuture<Void> receive(Consumer<LiveServerMessage> onMessage, Consumer<Throwable> onFailure, BiConsumer<Integer, String> onClosed) {
     websocket.setMessageCallback(onMessage);
+    websocket.setFailureCallback(onFailure);
+    websocket.setClosedCallback(onClosed);
     return CompletableFuture.completedFuture(null);
   }
 

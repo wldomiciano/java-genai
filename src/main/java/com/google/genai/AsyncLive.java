@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -215,7 +216,9 @@ public class AsyncLive {
     private final String setupRequest;
     private final CompletableFuture<AsyncSession> sessionFuture;
     private final ApiClient apiClient;
-    private Consumer<LiveServerMessage> messageCallback;
+    private volatile Consumer<LiveServerMessage> messageCallback;
+    private volatile Consumer<Throwable> failureCallback;
+    private volatile BiConsumer<Integer, String> closedCallback;
     private WebSocket webSocket;
 
     public GenAiWebSocketClient(
@@ -259,6 +262,14 @@ public class AsyncLive {
       this.messageCallback = messageCallback;
     }
 
+    public void setFailureCallback(Consumer<Throwable> failureCallback) {
+      this.failureCallback = failureCallback;
+    }
+
+    public void setClosedCallback(BiConsumer<Integer, String> closedCallback) {
+      this.closedCallback = closedCallback;
+    }
+
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
       this.webSocket = webSocket;
@@ -285,6 +296,8 @@ public class AsyncLive {
           Level.INFO,
           "Live session closing with code: {0} and reason: {1}",
           new Object[] {code, reason});
+
+      this.close();
     }
 
     @Override
@@ -296,6 +309,16 @@ public class AsyncLive {
       if (!sessionFuture.isDone()) {
         sessionFuture.completeExceptionally(
             new GenAiIOException("WebSocket closed unexpectedly: " + reason));
+      } else {
+        final BiConsumer<Integer, String> callback = this.closedCallback;
+
+        if (callback != null) {
+          try {
+            callback.accept(code, reason);
+          } catch (Exception e) {
+            logger.log(Level.SEVERE, "Closed callback threw an error", e);
+          }
+        }
       }
     }
 
@@ -304,6 +327,16 @@ public class AsyncLive {
       logger.log(Level.SEVERE, "Error during live session", t);
       if (!sessionFuture.isDone()) {
         sessionFuture.completeExceptionally(t);
+      } else {
+        final Consumer<Throwable> callback = this.failureCallback;
+
+        if (callback != null) {
+          try {
+            callback.accept(t);
+          } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failure callback threw an error", e);
+          }
+        }
       }
     }
 
@@ -333,7 +366,9 @@ public class AsyncLive {
         return;
       }
 
-      if (messageCallback != null) {
+      final Consumer<LiveServerMessage> callback = this.messageCallback;
+
+      if (callback != null) {
         try {
           LiveConverters liveConverters = new LiveConverters(this.apiClient);
           JsonNode responseNode = JsonSerializable.stringToJsonNode(message);
@@ -342,7 +377,7 @@ public class AsyncLive {
           }
           LiveServerMessage serverMessage =
               JsonSerializable.fromJsonNode(responseNode, LiveServerMessage.class);
-          messageCallback.accept(serverMessage);
+          callback.accept(serverMessage);
         } catch (RuntimeException e) {
           logger.log(Level.SEVERE, "Error deserializing message", e);
         }
